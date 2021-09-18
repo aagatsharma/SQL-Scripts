@@ -1,5 +1,6 @@
 # for mysql and microsoft database
 
+from abc import abstractmethod
 import requests
 import sys
 import urllib3
