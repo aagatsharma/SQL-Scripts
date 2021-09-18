@@ -43,11 +43,14 @@ Rule:
          --> error: column is not type text
          --> no error: column is type text.
 
+        for oracle: 'union select 'a', 'a' from dual -- 
+
 ***** STEP #3: Finding database of the website *****
 
      oracle: select banner from v$version
              select version from v$instance
-        
+         ' union select banner, null from v$version--
+
      microsoft: select @@version
 
      postgresql: select version()
