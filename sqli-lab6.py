@@ -36,4 +36,4 @@ if __name__ == "__main__":
     print("[+] Dumping all usernames and password.")
 
     if not exploit_sqli_users_table(url):
-        print("[-] Didnot find administrator password.")
+        print("[-] Didnot find administrator password...")
