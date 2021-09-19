@@ -1,8 +1,4 @@
-# SQL-Scripts
-
-Portswigger lab exploit scripts.
-
-
+# Portswigger lab Scripts with notes
 
 Background Union:
 
