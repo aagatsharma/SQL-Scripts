@@ -1,25 +1,54 @@
 # Portswigger lab Scripts with notes
 
-Background Union:
+1. What is SQL Injection?
+--> Vulnerability that interferes SQL queries that application makes to a database. 
+    Impact: View sensitive information, alter data and delete data.
+    It bypasses SQL queries. Suppose a login page asks for username and password. At username you add admin'-- . The SQL query looks like SELECT * from users where username = 'admin' --, password = . -- comments out rest of the query and ' closes the string, logs in as admin. 
 
-table1    table2
-a | b      c | d
-1 , 2      2 , 3
-3 , 4      4 , 5
 
-Query #1: select a,b from table1
-               1 , 2
-               3 , 4
-                
-Query #2: select a,b from table1 UNION select c,d from table2
-               1 , 2
-               3 , 4
-               2 , 3
-               4 , 5
-             
-Rule:
-  - Num and order of column must be same in all queries
-  - Same data types.
+2. Types of SQL Injection?
+
+a. In-band (Classic): When SQL payload reflects on the application. Easy to exploit. 
+
+       i) Error-based: Forces database to generate error, giving attacker information.
+                      Eg: www.evil.com/app.php?id=' . It gives output as eror in sql syntax with sql server version.
+      
+      ii) Union-based: UNION SQl operator to combine result of two queries into single result.
+                     Eg: www.evi.com/app.php?id=' UNION SELECT username, password FROM users-- . It gives username and password.
+      
+b. Inferential (Blind): No transfer of data via web app. Only performs when there are certain codition. Takes Long to exploit.
+     
+        i) Boolean-based: Uses boolean condition to return different result depending whether query returns true or false result.
+                          URL: www.evil.com/app.php?id=1. 
+                          Payload #1(False): www.evil.com/app.php?id=1 and 1=2. Doesn't give product detail because false.
+                          Payload #2(True): www.evil.com/app.php?id=1 and 1=1. Givs product detail because true.
+                          Backend Query: select title ftom product where id=1 and 1=1
+                          
+       ii) Time-based: Delays the result for a specific time, indicating SQL query presence. Eg: If first character of admin hash passowrd is a',wait for 10 seconds. If it takes 10 seconds, it contains a has first password otherwise it doesnot.
+      
+c. Out-of-band: Using protocol to trigger SQL Injection. Results come to your system like burpcollab.  Eg: '; exec master..xp_dirtree '//burpcollaborator/a'-- 
+
+
+3. How to find SQL Injection?
+--> It depends on blackbox(little info given) and whitebox(source-code given)
+       Blackbox: 
+              1. Map the aplication: input vectors, endpoints, how app works, etc.
+              2. Fuzzing: add SQl characters such as ' or " and look for errors, submit boolean condition, time delay query and out of band query to look for responses.
+       Whitebox: 
+              1. Enable web server and database logging.
+              2. Map the application: regex search in code that talk to database.
+              3. Code review: Follow code path for input vectors.
+              4. Tesst SQLi vulnerability.
+
+4. How to exploit SQL Injection?
+--> 
+     Exploiting Error Based SQLi: Submit ' or " and search for errors.
+     Exploiting Union-Based SQLi: Figure Number of column and data types.
+                                  Determine num of column by using ORDER BY: select title, cost from product where id=1 order by 1--. Increase ORDER BY to observer diferent behaviour: order by 2-- , order by 3-- and so on. Using NULL values: select title,cost from product where id=1' UNION SELECT NULL--. Increment UNION SELECT: ' UNION SELECT NULL, NULL-- and so on.
+     Exploiting Boolean-based SQLi: Submit true or false condition. 
+     Exploiting Time-based SQLi: Submit payload that causes delay in application. 
+     Exploiting Out-of-band SQLi: Submit OAST Payloads and look for change.
+
   
 
 ********** ERROR BASED **********
