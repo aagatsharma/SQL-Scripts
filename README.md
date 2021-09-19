@@ -21,17 +21,6 @@ Rule:
   - Num and order of column must be same in all queries
   - Same data types.
   
-Oracle 	    --comment
-
-Microsoft  --comment
-           /*comment*/
-
-PostgreSQL --comment
-           /*comment*/
-
-MySQL 	#comment
-        -- comment [Note the space after the double dash]
-        /*comment*/
 
 ********** ERROR BASED **********
 
