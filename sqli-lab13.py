@@ -38,8 +38,8 @@ if __name__ == "__main__":
         url = sys.argv[1].strip()
         tracking_cookie = sys.argv[2].strip()
     except IndexError:
-        print(f"[*] Usage: {sys.argv[0]} <url>")
-        print(f"[*] Example: {sys.argv[0]} www.example.com")
+        print(f"[*] Usage: {sys.argv[0]} <url> <tracking_cookie>")
+        print(f'[*] Example: {sys.argv[0]} "www.example.com" "auiasifba712"')
         sys.exit(-1)
 
     print("[+] Checking if the cookies is vulnerable to time delay attack....")
