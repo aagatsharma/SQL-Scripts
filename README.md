@@ -288,7 +288,6 @@ c. Out-of-band:
 
         * resource pool custom: 1 or options: request engine(no. of threads=1) 
 
-  gyftm8e4w60ujeaex093
 
 
 ***** Blind SQLI with out-of band *****
